@@ -1,0 +1,17 @@
+{
+    "name": "steam-api-wrapper",
+    "version": "1.0.1",
+    "description": "Wrapper for steams Web api",
+    "main": "dist/index.js",
+    "author": "Lajna",
+    "license": "MIT",
+    "private": false,
+    "types": "dist/index.d.ts",
+    "dependencies": {
+        "axios": "^0.21.0"
+    },
+    "devDependencies": {
+        "@types/axios": "^0.14.0",
+        "@types/node": "^14.14.2"
+    }
+}
