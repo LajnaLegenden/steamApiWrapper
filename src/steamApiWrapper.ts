@@ -5,7 +5,12 @@ export class SteamApiWrapper extends HttpClient {
     constructor(private apiKey: string) {
         super('http://api.steampowered.com')
     }
-
+/**
+ * GetNewsForApp returns the latest of a game specified by its appID
+ * @param appid AppID of the game you want the news of.
+ * @param count How many news enties you want to get returned.
+ * @param maxLength Maximum length of each news entry.
+ */
     public getNewsForApp = (appid: string, count: number = 3, maxLength: number = 300) => this.instance.get<News>('/ISteamNews/GetNewsForApp/v0002/', {
         params: {
             appid,
@@ -16,7 +21,7 @@ export class SteamApiWrapper extends HttpClient {
     });
 
     /**
-     * 
+     * Returns on global achievements overview of a specific game in percentages.
      * @param gameid AppID of the game you want the stats of.
      */
     public getGlobalAchievementPercentagesForApp = (gameid: string) => this.instance.get<AchievementPercentages>('/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/', {
@@ -106,7 +111,43 @@ export class SteamApiWrapper extends HttpClient {
             key: this.apiKey,
         }
     });
+/**
+ * IsPlayingSharedGame returns the original owner's SteamID if a borrowing account is currently playing this game. If the game is not borrowed or the borrower currently doesn't play this game, the result is always 0.
+ * @param steamid The SteamID of the account playing.
+ * @param appIdPlaying The AppID of the game currently playing
+ * @returns **lender_steamid** The SteamID of the original owner if the given account currently plays this game and it's borrowed. In all other cases the result is 0.
+ */
+    public isPlayingSharedGame = (steamid: string, appIdPlaying: string) => this.instance.get<IsShared>('/IPlayerService/IsPlayingSharedGame/v0001/', {
+        params: {
+            steamid,
+            format: "json",
+            key: this.apiKey,
+        }
+    });
+/**
+ * GetSchemaForGame returns game name, game version and available game stats(achievements and stats).
+ * @param appid The AppID of the game you want stats of
+ */
+    public getSchemaForGame = (appid: string) => this.instance.get<GameSchemaRoot>('/ISteamUserStats/GetSchemaForGame/v2/', {
+        params: {
+            appid,
+            format: "json",
+            key: this.apiKey,
+        }
+    });
 
+    public getPlayerBans = (steamids: string[] | string) => {
+        let ids = steamids;
+        if (Array.isArray(steamids)) ids = steamids.join(",")
+        return this.instance.get<PlayerBansRoot>('/ISteamUser/GetPlayerBans/v1/', {
+            params: {
+                steamids: ids,
+                format: "json",
+                key: this.apiKey,
+
+            }
+        });
+    }
 
 }
 ////#region types
@@ -235,8 +276,57 @@ export interface Game {
     playtime_linux_forever: number;
 }
 
-////#endregion types
-
-function log(...args) {
-    if (process.env.NODE_ENV == "dev") console.log(args.toString())
+export interface IsSharedRoot {
+  response: IsShared;
 }
+
+export interface IsShared {
+  lender_steamid: string;
+}
+
+export interface GameSchemaRoot {
+  game: GameSchema;
+}
+
+export interface GameSchema {
+  gameName: string;
+  gameVersion: string;
+  availableGameStats: AvailableGameStats;
+}
+
+export interface AvailableGameStats {
+  stats: StatSchema[];
+  achievements: AchievementSchema[];
+}
+
+export interface AchievementSchema {
+  name: string;
+  defaultvalue: number;
+  displayName: string;
+  hidden: number;
+  description: string;
+  icon: string;
+  icongray: string;
+}
+
+export interface StatSchema {
+  name: string;
+  defaultvalue: number;
+  displayName: string;
+}
+
+export interface PlayerBansRoot {
+  players: PlayerBans[];
+}
+
+export interface PlayerBans {
+  SteamId: string;
+  CommunityBanned: boolean;
+  VACBanned: boolean;
+  NumberOfVACBans: number;
+  DaysSinceLastBan: number;
+  NumberOfGameBans: number;
+  EconomyBan: string;
+}
+
+////#endregion types
